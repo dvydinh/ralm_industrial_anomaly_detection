@@ -1,0 +1,25 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Checkpoints
+checkpoints/
+*.pt
+*.pth
+
+# Results
+results/
+*.json
+ablation_summary.json
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Notebooks local data
+/notebooks/data/
