@@ -11,3 +11,5 @@ __pycache__/
 Thumbs.db
 
 # Ignore results if large? No, json is small.
+
+# trace: 25-09-14
