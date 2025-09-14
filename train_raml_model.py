@@ -44,7 +44,7 @@ class CrossScaleAttention(nn.Module):
         out = (self.dropout(attn) @ v).transpose(1, 2).reshape(B, D)
         return self.norm(query + self.out_proj(out))
 
-class MultiScalePyramidDraft(nn.Module):
+class MultiScalePyramid(nn.Module):
     def __init__(self, feature_dim=512, hidden_dim=256):
         super().__init__()
         self.s1_proj, self.s2_proj, self.s3_proj = nn.Linear(feature_dim, hidden_dim), nn.Linear(feature_dim, hidden_dim), nn.Linear(feature_dim, hidden_dim)
