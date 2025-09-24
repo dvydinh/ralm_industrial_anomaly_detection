@@ -1,0 +1,71 @@
+data:
+  mvtec_root: "/content/data/mvtec_anomaly_detection"
+  visa_root: "/content/data/VisA_pytorch/1cls"
+  categories: null
+  split_seed: 42
+  validation_ratio: 0.1
+  image_size: 896
+  resize_mode: "letterbox"
+  use_synthetic_anomalies: true
+  use_test_anomalies_for_train: false
+  train_ratio: 0.8
+
+model:
+  clip_model: "ViT-B/16"
+  clip_source: "openai"
+  feature_dim: 512
+  hidden_dim: 256
+  clip_input_size: 224
+  scales: [1, 2, 4]
+  encode_chunk_size: 512
+  combine_scale_batches: true
+  channels_last: true
+  num_attention_heads: 4
+  dropout: 0.1
+  prompt_ensemble: true
+  text_temperature: 0.01
+  local_score_weight: 0.5
+  local_topk: 0.1
+
+loss:
+  margin_base: 0.5
+  lambda_sigma: 0.3
+  lambda_resolution: 0.3
+  original_resolution: 896
+  model_resolution: 224
+  temperature: 0.07
+  alpha: 1.0
+  beta: 1.0
+  gamma: 0.5
+  bce_weight: 1.0
+
+training:
+  epochs: 25
+  batch_size: 32
+  learning_rate: 5.0e-5
+  weight_decay: 0.02
+  max_grad_norm: 1.0
+  num_workers: 12
+  seed: 42
+  deterministic: false
+  amp: true
+  amp_dtype: "float16"
+  allow_tf32: true
+  cudnn_benchmark: true
+  prefetch_factor: 4
+  persistent_workers: true
+  cache_validation_features: true
+  early_stopping_patience: 7
+  early_stopping_min_delta: 1.0e-4
+
+difficulty_tracker: null
+
+inference:
+  visual_weight: 0.85
+  text_weight: 0.15
+
+logging:
+  log_dir: "logs/"
+  save_dir: "checkpoints/"
+  results_dir: "results/"
+  log_interval: 10
