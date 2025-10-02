@@ -135,3 +135,43 @@ class MACCLLoss(nn.Module):
         
         return total_loss, {'total': total_loss, 'adaptive_margin': adaptive_m, 'running_sigma': self.running_sigma.item()}
 
+# --- COMPONENT 4: MODEL ---
+class TextVisualFusion(nn.Module):
+    def __init__(self, text_dim: int = 512, visual_dim: int = 256, hidden_dim: int = 256):
+        super().__init__()
+        # Project text to visual dimension (frozen after init)
+        self.text_proj = nn.Linear(text_dim, hidden_dim)
+        # Simple cross-attention without complex gating
+        self.cross_attn = nn.MultiheadAttention(embed_dim=hidden_dim, num_heads=4, dropout=0.1, batch_first=True)
+        # Lightweight fusion - residual style
+        self.fusion_scale = nn.Parameter(torch.tensor(0.1))  # Start small, learn to increase
+        self.norm = nn.LayerNorm(hidden_dim)
+        
+    def forward(self, visual_features: torch.Tensor, text_features: torch.Tensor) -> torch.Tensor:
+        """
+        Simple fusion WITHOUT gating. Uses residual connection.
+        text_features: [B, 2, 512] (Normal, Anomaly)
+        """
+        B = visual_features.size(0)
+        
+        # Project text to visual dimension
+        # text_features is [B, 2, 512] -> [B, 2, 256]
+        text_proj = self.text_proj(text_features)
+        
+        # Safety check for dimensions
+        if text_proj.dim() == 2: # [2, 256] -> Shared case (legacy)
+             text_proj = text_proj.unsqueeze(0).expand(B, -1, -1)
+             
+        # Cross-attention: Visual (query) attends to Text (key, value)
+        # Visual: [B, 256] -> [B, 1, 256]
+        # Text:   [B, 2, 256]
+        visual_query = visual_features.unsqueeze(1)  
+        
+        # Attn: Query=[B,1,D], Key=[B,2,D], Val=[B,2,D]
+        attn_output, _ = self.cross_attn(visual_query, text_proj, text_proj)
+        attn_output = attn_output.squeeze(1)  # [B, 256]
+        
+        # SIMPLE RESIDUAL FUSION
+        fused = visual_features + self.fusion_scale * attn_output
+        
+        return self.norm(fused)
