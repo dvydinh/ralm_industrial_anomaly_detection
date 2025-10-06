@@ -176,7 +176,7 @@ class TextVisualFusion(nn.Module):
         
         return self.norm(fused)
 
-class RAMLModel(nn.Module):
+class RAMLUltimateModel(nn.Module):
     def __init__(self, clip_model, feature_dim: int = 512, hidden_dim: int = 256):
         super().__init__()
         self.clip = clip_model
