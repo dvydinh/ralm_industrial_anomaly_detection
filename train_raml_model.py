@@ -175,3 +175,97 @@ class TextVisualFusion(nn.Module):
         fused = visual_features + self.fusion_scale * attn_output
         
         return self.norm(fused)
+
+class RAMLModel(nn.Module):
+    def __init__(self, clip_model, feature_dim: int = 512, hidden_dim: int = 256):
+        super().__init__()
+        self.clip = clip_model
+        self.feature_dim = feature_dim
+        self.hidden_dim = hidden_dim
+        
+        # Freeze CLIP backbone
+        for param in self.clip.parameters(): param.requires_grad = False
+            
+        # Multi-scale pyramid with attention
+        self.pyramid = MultiScalePyramid(feature_dim, hidden_dim)
+        
+        # Text-Visual Fusion (NOVEL) - USING 3 ARGS AS IN PIPELINE
+        self.fusion = TextVisualFusion(text_dim=feature_dim, visual_dim=hidden_dim, hidden_dim=hidden_dim)
+        
+        # Feature refinement head
+        self.feature_head = nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.GELU(), nn.Dropout(0.1), nn.Linear(hidden_dim, hidden_dim), nn.LayerNorm(hidden_dim))
+        
+        # Classification head
+        self.classifier = nn.Sequential(nn.Linear(hidden_dim, 64), nn.GELU(), nn.Dropout(0.1), nn.Linear(64, 1))
+        
+        self._text_cache = {}
+
+    def encode_text_prompts(self, device, categories):
+        # OPTIMIZED: Class-Specific Prompts for Maximum Accuracy
+        # If all categories are the same (often the case in single-class training), strict cache.
+        if len(set(categories)) == 1:
+            c_name = categories[0]
+            if c_name in self._text_cache: return self._text_cache[c_name].unsqueeze(0).expand(len(categories), -1, -1)
+            
+            with torch.no_grad():
+                import clip as c
+                # Use the specific object name, e.g., 'bottle' instead of 'object'
+                ne = F.normalize(self.clip.encode_text(c.tokenize([f"a photo of a flawless {c_name}"]).to(device)).float(), p=2.0, dim=-1)
+                ae = F.normalize(self.clip.encode_text(c.tokenize([f"a photo of a damaged {c_name}"]).to(device)).float(), p=2.0, dim=-1)
+                emb = torch.cat([ne, ae], dim=0) # [2, D]
+                self._text_cache[c_name] = emb
+                return emb.unsqueeze(0).expand(len(categories), -1, -1) # [B, 2, D]
+        
+        # Mixed batch (rare in this training loop but handled for safety)
+        batch_emb = []
+        with torch.no_grad():
+            import clip as c
+            for cat in categories:
+                if cat in self._text_cache:
+                    batch_emb.append(self._text_cache[cat])
+                else:
+                    ne = F.normalize(self.clip.encode_text(c.tokenize([f"a photo of a flawless {cat}"]).to(device)).float(), p=2.0, dim=-1)
+                    ae = F.normalize(self.clip.encode_text(c.tokenize([f"a photo of a damaged {cat}"]).to(device)).float(), p=2.0, dim=-1)
+                    emb = torch.cat([ne, ae], dim=0)
+                    self._text_cache[cat] = emb
+                    batch_emb.append(emb)
+        
+        return torch.stack(batch_emb) # [B, 2, D]
+
+    def extract_multiscale(self, images):
+        B, C, H, W = images.shape
+        with torch.no_grad():
+            g = self.clip.encode_image(images).float()
+            feat_s2 = self.clip.encode_image(F.interpolate(images.view(B*4, C, H//2, W//2), size=(224,224), mode='bilinear')).float().view(B, 4, -1)
+            feat_s3 = self.clip.encode_image(F.interpolate(images.view(B*16, C, H//4, W//4), size=(224,224), mode='bilinear')).float().view(B, 16, -1)
+        return g, feat_s2, feat_s3
+
+    def forward(self, images, categories=None):
+        g, feat_s2, feat_s3 = self.extract_multiscale(images)
+        pyramid_feat = self.pyramid(g, feat_s2, feat_s3)
+        
+        # Use generic object if categories missing (inference fallback)
+        if categories is None: categories = ["object"] * images.size(0)
+            
+        text_emb = self.encode_text_prompts(images.device, categories) # [B, 2, D]
+        
+        # Fusion using the robust forward method
+        fused = self.fusion(pyramid_feat, text_emb)
+        
+        # Deviation Score (Updated for Batched Text Embeddings [B, 2, D])
+        g_norm = F.normalize(g, p=2.0, dim=-1)
+        
+        # text_emb is [B, 2, D]. slice 0=normal, 1=anomaly
+        # Dot product per sample: (g_norm * emb).sum(-1)
+        # Score = (AnomalySim - NormalSim + 1) / 2
+        normal_sim = (g_norm * text_emb[:, 0]).sum(dim=-1)
+        anomaly_sim = (g_norm * text_emb[:, 1]).sum(dim=-1)
+        
+        text_score = (anomaly_sim - normal_sim + 1) / 2
+        
+        refined = self.feature_head(fused)
+        logits = self.classifier(refined).squeeze(-1)
+        visual_score = torch.sigmoid(logits)
+        
+        return {'logits': logits, 'features': refined, 'scores': 0.85 * visual_score + 0.15 * text_score}
+
