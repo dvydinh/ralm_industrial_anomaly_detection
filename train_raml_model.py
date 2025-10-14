@@ -20,6 +20,50 @@ from collections import defaultdict
 from typing import List, Tuple, Dict, Optional
 
 # ========================================================================================
+# PART 0: KAGGLE SETUP
+# ========================================================================================
+def setup_kaggle_env():
+    print("="*80)
+    print("☁️ [KAGGLE SETUP] PREPARING ENVIRONMENT")
+    print("="*80)
+    
+    # 1. Auto-detect MVTec Dataset in /kaggle/input
+    candidate_paths = [
+        '/kaggle/input/mvtec-anomaly-detection',
+        '/kaggle/input/mvtec-ad',
+        '/kaggle/input/mvtecad',
+        '/kaggle/input/industrial-defect-detection/mvtec_anomaly_detection'
+    ]
+    
+    mvtec_dir = None
+    
+    # Fast check known paths
+    for p in candidate_paths:
+        if os.path.exists(p) and os.path.isdir(p):
+            # Check if it has category folders (e.g., 'bottle')
+            if 'bottle' in os.listdir(p):
+                mvtec_dir = p
+                print(f"✅ Found MVTec dataset at: {mvtec_dir}")
+                break
+    
+    # Slow recursive search if not found
+    if not mvtec_dir:
+        print("🔍 Searching recursively in /kaggle/input...")
+        for root, dirs, files in os.walk('/kaggle/input'):
+            if 'bottle' in dirs and 'carpet' in dirs:
+                mvtec_dir = root
+                print(f"✅ Auto-detected MVTec at: {mvtec_dir}")
+                break
+                
+    if not mvtec_dir:
+        print("❌ CRITICAL: MVTec dataset not found in /kaggle/input.")
+        print("   Please add the 'mvtec-anomaly-detection' dataset to this notebook.")
+        # Fallback to creating a dummy directory so script doesn't crash immediately (optional)
+        return None
+        
+    return mvtec_dir
+
+# ========================================================================================
 # [CORE CLASSES - AUTHENTIC IMPLEMENTATION]
 # ========================================================================================
 
