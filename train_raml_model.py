@@ -269,3 +269,64 @@ class RAMLUltimateModel(nn.Module):
         
         return {'logits': logits, 'features': refined, 'scores': 0.85 * visual_score + 0.15 * text_score}
 
+# ========================================================================================
+# EXECUTION LOGIC
+# ========================================================================================
+class MVTecDatasetWithSynthetic(Dataset):
+    def __init__(self, data_dir, categories, split='train', transform=None, use_real_anomalies=False, train_ratio=0.8):
+        self.transform = transform
+        self.split = split
+        self.samples = []
+        
+        for category in categories:
+            # 1. Gather all samples first
+            train_dir = os.path.join(data_dir, category, 'train', 'good')
+            if not os.path.exists(train_dir): continue # Skip if bad path
+            
+            tx_samples = glob(os.path.join(train_dir, '*.png')) + glob(os.path.join(train_dir, '*.jpg'))
+            
+            test_dir = os.path.join(data_dir, category, 'test')
+            test_good = []
+            test_bad = []
+            
+            if os.path.exists(test_dir):
+                for subdir in os.listdir(test_dir):
+                    if not os.path.isdir(os.path.join(test_dir, subdir)): continue
+                    label = 0 if subdir == 'good' else 1
+                    imgs = glob(os.path.join(test_dir, subdir, '*.png')) + glob(os.path.join(test_dir, subdir, '*.jpg'))
+                    for i in imgs: 
+                        item = {'path': i, 'label': label, 'category': category}
+                        if label == 0: test_good.append(item)
+                        else: test_bad.append(item)
+            
+            # 2. Stratified Split (Seed 42)
+            # Sort for stability before shuffle
+            test_good.sort(key=lambda x: x['path'])
+            test_bad.sort(key=lambda x: x['path'])
+            
+            random.seed(42)
+            random.shuffle(test_good)
+            random.shuffle(test_bad)
+            
+            split_g = int(len(test_good) * train_ratio)
+            split_b = int(len(test_bad) * train_ratio)
+            
+            if split == 'train':
+                # Train = All Original Train + 80% TestGood + 80% TestBad
+                for p in tx_samples: self.samples.append({'path': p, 'label': 0, 'category': category})
+                self.samples.extend(test_good[:split_g])
+                if use_real_anomalies:
+                    self.samples.extend(test_bad[:split_b])
+            else:
+                # Test = 20% TestGood + 20% TestBad
+                self.samples.extend(test_good[split_g:])
+                self.samples.extend(test_bad[split_b:])
+
+    def __len__(self): return len(self.samples)
+    def __getitem__(self, idx):
+        item = self.samples[idx]
+        try: img = Image.open(item['path']).convert('RGB')
+        except: return torch.zeros(3, 224, 224), 0, item['category']
+        if self.transform: img = self.transform(img)
+        # Synthetic generation logic removed
+        return img, item['label'], item['category']
