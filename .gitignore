@@ -8,9 +8,9 @@ checkpoints/
 *.pt
 *.pth
 
-# Results
-results/
-*.json
+# Results - keep CSVs and plots, ignore models and verbose JSON
+results/models/
+results/metrics/*.json
 ablation_summary.json
 
 # IDE
