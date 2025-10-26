@@ -17,7 +17,7 @@ model:
   hidden_dim: 256
   clip_input_size: 224
   scales: [1, 2, 4]
-  encode_chunk_size: 512
+  encode_chunk_size: 64
   combine_scale_batches: true
   channels_last: true
   num_attention_heads: 4
@@ -41,18 +41,18 @@ loss:
 
 training:
   epochs: 25
-  batch_size: 32
+  batch_size: 8
   learning_rate: 5.0e-5
   weight_decay: 0.02
   max_grad_norm: 1.0
-  num_workers: 12
+  num_workers: 2
   seed: 42
   deterministic: false
   amp: true
   amp_dtype: "float16"
   allow_tf32: true
   cudnn_benchmark: true
-  prefetch_factor: 4
+  prefetch_factor: 2
   persistent_workers: true
   cache_validation_features: true
   early_stopping_patience: 7
