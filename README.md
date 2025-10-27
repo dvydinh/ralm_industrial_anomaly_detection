@@ -87,7 +87,8 @@ Models are evaluated using five image-level metrics: area under the receiver ope
 
 | Method | AUROC | AP | F1-max | Precision | Recall |
 |--------|------:|---:|-------:|----------:|-------:|
-| Global CLIP (zero-shot baseline) | 80.86 | 91.67 | 89.89 | 86.55 | 94.83 |
+| Global CLIP (zero-shot baseline) | 80.78 | 91.65 | 89.82 | 86.26 | 95.11 |
+| WinCLIP (state-of-the-art zero-shot) | 88.22 | - | 91.34 | - | - |
 | RAML (fixed margin ablation) | 93.20 | 96.69 | 93.13 | 94.13 | 93.68 |
 | RAML (strong margin ablation) | 93.66 | 96.61 | 94.06 | 93.04 | 95.95 |
 | **RAML (full model)** | **94.15** | **96.98** | **94.39** | **95.10** | **94.31** |
