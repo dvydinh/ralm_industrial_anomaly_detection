@@ -374,3 +374,42 @@ class MVTecDatasetWithSynthetic(Dataset):
         if self.transform: img = self.transform(img)
         # Synthetic generation logic removed
         return img, item['label'], item['category']
+
+def train_ablation_run(model, train_loader, args, device):
+    optimizer = torch.optim.AdamW(model.parameters(), lr=args['lr'])
+    
+    if args['name'] == 'Standard BCE':
+        loss_fn = nn.BCEWithLogitsLoss()
+        print(f"👉 Using BCE Loss (Baseline)")
+    else:
+        l_sigma = args.get('lambda_sigma', 0.3)
+        l_res = args.get('lambda_resolution', 0.3)
+        m_base = args.get('margin_base', 0.5)
+        loss_fn = MACCLLoss(feature_dim=256, margin_base=m_base, lambda_sigma=l_sigma, lambda_resolution=l_res).to(device)
+        print(f"👉 Using MACCL Loss: Base={m_base}, Sigma={l_sigma}, Res={l_res}")
+
+    model.train()
+    print(f"🚀 Training: {args['name']} (Epochs: {args['epochs']})")
+    
+    for epoch in range(1, args['epochs'] + 1):
+        total_loss = 0
+        pbar = tqdm(train_loader, desc=f"Epoch {epoch}")
+        for imgs, labels, cats in pbar:
+            imgs, labels = imgs.to(device), labels.to(device).float()
+            optimizer.zero_grad()
+            out = model(imgs, categories=list(cats))
+            
+            if args['name'] == 'Standard BCE':
+                loss = loss_fn(out['logits'], labels)
+            else:
+                loss, _ = loss_fn(out['features'], labels, list(cats))
+            
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item()
+            pbar.set_postfix({'loss': loss.item()})
+        
+        avg_loss = total_loss / len(train_loader)
+        print(f"   📉 Epoch {epoch} Completed | Avg Loss: {avg_loss:.4f}")
+            
+    return model
