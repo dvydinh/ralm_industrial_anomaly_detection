@@ -444,3 +444,57 @@ def evaluate_run(model, test_loader, device):
         print(f"   - {cat}: {score*100:.2f}%")
         
     return mean_auroc, auroc_by_cat
+
+if __name__ == '__main__':
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"✅ DEVICE: {device}")
+    
+    mvtec_dir = setup_kaggle_env()
+    
+    if not os.path.exists(mvtec_dir):
+        print("❌ CRITICAL: MVTec dataset not found.")
+        sys.exit(1)
+        
+    try: import clip
+    except ImportError:
+        os.system('pip install git+https://github.com/openai/CLIP.git')
+        import clip
+        
+    clip_model, preprocess = clip.load("ViT-B/16", device=device)
+    categories = sorted(os.listdir(mvtec_dir))
+    if 'checkpoints' in categories: categories.remove('checkpoints')
+
+    print("\n" + "="*60)
+    print("🔬 [PHASE 2 - KAGGLE] RUNNING ABLATION STUDIES: RAML PROPOSED")
+    print("="*60)
+    
+    # Run RAML (Proposed)
+    raml_run = {'name': 'RAML (Proposed)', 'epochs': 20, 'lr': 5e-5, 'margin_base': 0.5, 'lambda_sigma': 0.3, 'lambda_resolution': 0.3}
+    
+    train_ds = MVTecDatasetWithSynthetic(mvtec_dir, categories, split='train', transform=preprocess, train_ratio=0.8, use_real_anomalies=True)
+    test_ds = MVTecDatasetWithSynthetic(mvtec_dir, categories, split='test', transform=preprocess, train_ratio=0.8, use_real_anomalies=True)
+    train_loader = DataLoader(train_ds, batch_size=16, shuffle=True)
+    test_loader = DataLoader(test_ds, batch_size=16, shuffle=False)
+    
+    print(f"\n▶️ Running: {raml_run['name']}")
+    model = RAMLUltimateModel(clip_model).to(device)
+    model = train_ablation_run(model, train_loader, raml_run, device)
+    score, detailed_scores = evaluate_run(model, test_loader, device)
+    
+    print(f"✅ Final Result RAML: {score*100:.2f}%")
+    os.makedirs("checkpoints", exist_ok=True)
+    torch.save(model.state_dict(), "checkpoints/model_RAML_Proposed.pt")
+    print("💾 Saved checkpoint to checkpoints/model_RAML_Proposed.pt")
+
+    # SAVE RESULTS TO JSON
+    result_data = {
+        "RAML_Proposed": {
+            "mean_auroc": round(score * 100, 2),
+            "details": {k: round(v * 100, 2) for k, v in detailed_scores.items()}
+        }
+    }
+    
+    os.makedirs("RAML_INDUSTRIAL_ANOMALY_DETECTION/results", exist_ok=True)
+    with open("RAML_INDUSTRIAL_ANOMALY_DETECTION/results/result_RAML_Proposed.json", "w") as f:
+        json.dump(result_data, f, indent=4)
+    print("💾 Saved results to RAML_INDUSTRIAL_ANOMALY_DETECTION/results/result_RAML_Proposed.json")
