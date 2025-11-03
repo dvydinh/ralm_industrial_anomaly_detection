@@ -413,3 +413,34 @@ def train_ablation_run(model, train_loader, args, device):
         print(f"   📉 Epoch {epoch} Completed | Avg Loss: {avg_loss:.4f}")
             
     return model
+
+def evaluate_run(model, test_loader, device):
+    model.eval()
+    results_by_cat = defaultdict(list)
+    
+    with torch.no_grad():
+        for imgs, labels, cats in test_loader:
+            imgs = imgs.to(device)
+            out = model(imgs, categories=list(cats))
+            scores = out['scores'].cpu().numpy()
+            lbls = labels.numpy()
+            
+            for score, lbl, cat in zip(scores, lbls, cats):
+                results_by_cat[cat].append((lbl, score))
+    
+    # Calculate Per-Category AUROC
+    auroc_by_cat = {}
+    for cat, data in results_by_cat.items():
+        lbls, scrs = zip(*data)
+        if len(set(lbls)) > 1:
+            auroc_by_cat[cat] = roc_auc_score(lbls, scrs)
+        else:
+            auroc_by_cat[cat] = 0.5 # Fallback
+            
+    mean_auroc = np.mean(list(auroc_by_cat.values()))
+    
+    print(f"\n📊 Detailed Results for Current Run:")
+    for cat, score in sorted(auroc_by_cat.items()):
+        print(f"   - {cat}: {score*100:.2f}%")
+        
+    return mean_auroc, auroc_by_cat
