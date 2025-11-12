@@ -145,7 +145,8 @@ class MACCLLoss(nn.Module):
             if normal_mask.sum() > 0: self.running_sigma.copy_(0.9 * self.running_sigma + 0.1 * features[normal_mask].std())
         m_adaptive = self.margin_base + self.lambda_sigma * self.running_sigma + self.lambda_resolution * (1 - self.resolution_ratio)
         
-        dist_to_center = torch.norm(features - self.normal_center, dim=1)
+        # USE ROBUST LINALG NORM TO AVOID TYPE ERROR
+        dist_to_center = torch.linalg.norm(features - self.normal_center, ord=2, dim=1)
         
         loss_raw = F.relu(m_adaptive - dist_to_center) * anomaly_mask.float()
         return (loss_raw.sum() / anomaly_mask.sum()) if anomaly_mask.sum() > 0 else torch.tensor(0.0, device=features.device), loss_raw, m_adaptive.item()
