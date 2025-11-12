@@ -403,9 +403,17 @@ def train_ablation_run(model, train_loader, args, device):
             if args['name'] == 'Standard BCE':
                 loss = loss_fn(out['logits'], labels)
             else:
-                loss, _ = loss_fn(out['features'], labels, list(cats))
+                # Authentic: Loss on FEATURES (Metric Learning)
+                loss_maccl, _ = loss_fn(out['features'], labels, list(cats))
+                
+                # CRITICAL FIX: Also train the Classifier Head!
+                # Without this, 'logits' and 'visual_score' come from random untrained weights.
+                loss_bce_draft = F.binary_cross_entropy_with_logits(out['logits'], labels)
+                
+                loss = loss_maccl + loss_bce_draft
             
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0) # Added for stability
             optimizer.step()
             total_loss += loss.item()
             pbar.set_postfix({'loss': loss.item()})
