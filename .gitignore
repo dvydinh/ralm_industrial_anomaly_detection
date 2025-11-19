@@ -12,19 +12,6 @@ Thumbs.db
 
 # Ignore results if large? No, json is small.
 
-# Kaggle
-/kaggle/
-
-# trace: 25-10-28
-
-# trace: 25-10-28
-
-# trace: 25-11-03
-
-# trace: 25-11-07
-
-# trace: 25-11-07
-
-# trace: 25-11-13
-
-# trace: 25-11-18
+# IDE
+.vscode/
+.idea/
