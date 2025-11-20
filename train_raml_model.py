@@ -180,7 +180,7 @@ class MACCLLoss(nn.Module):
         
         return total_loss, {'total': total_loss, 'adaptive_margin': adaptive_m, 'running_sigma': self.running_sigma.item()}
 
-# --- COMPONENT 4: MODEL ---
+# --- COMPONENT 4: RAML MODEL ---
 class TextVisualFusion(nn.Module):
     def __init__(self, text_dim: int = 512, visual_dim: int = 256, hidden_dim: int = 256):
         super().__init__()
