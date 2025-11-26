@@ -1,7 +1,7 @@
 """
 KAGGLE: WINCLIP ZERO-SHOT BASELINE EVALUATION
 ================================================
-Goal: Evaluate baseline WinCLIP baseline performance (No Training)
+Goal: Evaluate baseline WinCLIP performance (No Training)
 Features:
 - Pure Zero-shot inference
 - Uses "damaged [obj]" vs "flawless [obj]" prompts
@@ -222,16 +222,16 @@ def run_winclip_baseline():
 
     # Save Results
     result_data = {
-        "WinCLIP baseline_ZeroShot": {
+        "WinCLIP_ZeroShot": {
             "mean_auroc": round(avg_score * 100, 2),
             "details": {k: round(v * 100, 2) for k, v in results.items()}
         }
     }
     
     os.makedirs("results", exist_ok=True)
-    with open("results/result_WinCLIP baseline_ZeroShot.json", "w") as f:
+    with open("results/result_WinCLIP_ZeroShot.json", "w") as f:
         json.dump(result_data, f, indent=4)
-    print("\n💾 Saved to results/result_WinCLIP baseline_ZeroShot.json")
+    print("\n💾 Saved to results/result_WinCLIP_ZeroShot.json")
 
 if __name__ == "__main__":
     run_winclip_baseline()
