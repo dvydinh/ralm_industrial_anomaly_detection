@@ -48,24 +48,24 @@ def setup_colab_env_phase3():
     DATA_ROOT = '/content/data'
     os.makedirs(DATA_ROOT, exist_ok=True)
     
-    # 3. Unzip VISA
+    # 3. Unzip VisA
     visa_zip = os.path.join(DRIVE_PATH, 'visa_anomaly_detection.zip')
     visa_dir = os.path.join(DATA_ROOT, 'visa_anomaly_detection')
     
     if os.path.exists(visa_dir):
-        print(f"✅ VISA dataset already exists at: {visa_dir}")
+        print(f"✅ VisA dataset already exists at: {visa_dir}")
     elif os.path.exists(visa_zip):
-        print(f"📦 Found VISA ZIP at: {visa_zip}")
+        print(f"📦 Found VisA ZIP at: {visa_zip}")
         print("   ⏳ Unzipping... (This may take a minute)")
         with zipfile.ZipFile(visa_zip, 'r') as zip_ref:
             zip_ref.extractall(DATA_ROOT)
         print(f"   ✅ Unzipped to: {visa_dir}")
     else:
         if os.path.exists(os.path.join(DRIVE_PATH, 'visa_anomaly_detection')):
-             print(f"✅ Found VISA folder directly in Drive.")
+             print(f"✅ Found VisA folder directly in Drive.")
              visa_dir = os.path.join(DRIVE_PATH, 'visa_anomaly_detection')
         else:
-             print(f"⚠️ VISA ZIP not found at {visa_zip}. Please check path.")
+             print(f"⚠️ VisA ZIP not found at {visa_zip}. Please check path.")
 
     # 4. Check Model
     model_path = os.path.join(DRIVE_PATH, 'best_model.pt')
@@ -149,9 +149,9 @@ if __name__ == '__main__':
     model.load_state_dict(checkpoint['model_state_dict']) # strict=False allowed if architectures slightly differ
     model.eval()
     
-    # Run VISA Eval
+    # Run VisA Eval
     visa_categories = sorted([d for d in os.listdir(visa_dir) if os.path.isdir(os.path.join(visa_dir, d))])
-    print(f"📊 VISA Categories: {visa_categories}")
+    print(f"📊 VisA Categories: {visa_categories}")
     
     visa_scores = {}
     for cat in visa_categories:
