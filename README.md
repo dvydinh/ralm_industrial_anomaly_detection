@@ -173,3 +173,59 @@ Where:
 3. **Cross-scale attention**: bidirectional attention fusion across scales
 4. **Auto-difficulty tracker**: automatically adjusting loss weights based on per-category difficulty
 5. **Text-visual fusion**: residual cross-attention with learnable fusion scale
+
+---
+
+## Datasets
+
+### MVTec Anomaly Detection Dataset (primary)
+
+| Property | Value |
+|----------|-------|
+| Authors | P. Bergmann, M. Fauser, D. Sattlegger, C. Steger |
+| Published | CVPR 2019 |
+| Paper | "MVTec AD - A Comprehensive Real-World Dataset for Unsupervised Anomaly Detection" |
+| Images | 5,354 total (3,629 train, 1,725 test) |
+| Categories | 15 (5 textures, 10 objects) |
+| Resolution | 700x700 to 1024x1024 |
+| License | CC BY-NC-SA 4.0 |
+| Link | https://www.mvtec.com/company/research/datasets/mvtec-ad |
+
+**Category list:** bottle, cable, capsule, carpet, grid, hazelnut, leather, metal_nut, pill, screw, tile, toothbrush, transistor, wood, zipper
+
+**Data split used:**
+- Training: 100% official train set + 80% official test set (stratified)
+- Testing: remaining 20% of official test set (held out)
+
+### VisA Dataset (transfer evaluation)
+
+| Property | Value |
+|----------|-------|
+| Authors | Y. Zou, J. Jeong, L. Pemula, D. Zhang, O. Dabeer |
+| Published | ECCV 2022 |
+| Paper | "SPot-the-Difference Self-supervised Pre-training for Anomaly Detection and Segmentation" |
+| Images | 10,821 total |
+| Categories | 12 |
+| License | CC BY 4.0 |
+| Link | https://github.com/amazon-science/spot-diff |
+
+**Category list:** candle, capsules, cashew, chewinggum, fryum, macaroni1, macaroni2, pcb1, pcb2, pcb3, pcb4, pipe_fryum
+
+**Usage:** evaluation only for zero-shot transfer (model trained on MVTec, evaluated on VisA without fine-tuning)
+
+---
+
+## Pre-trained model
+
+### CLIP backbone
+
+| Property | Value |
+|----------|-------|
+| Model | CLIP ViT-B/16 |
+| Provider | OpenAI |
+| Parameters | 86M (frozen during training) |
+| Input size | 224x224 |
+| Feature dimension | 512 |
+| Download link | https://openaipublic.azureedge.net/clip/models/5806e77cd80f8b59890b7e101eabd078d9fb84e6937f9e85e4ec59a0ca1a1b55/ViT-B-16.pt |
+
+The script automatically downloads the model via the `open_clip` library. For offline environments, download manually and place in the cache directory.
