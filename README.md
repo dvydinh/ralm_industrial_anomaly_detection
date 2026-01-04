@@ -229,3 +229,47 @@ Where:
 | Download link | https://openaipublic.azureedge.net/clip/models/5806e77cd80f8b59890b7e101eabd078d9fb84e6937f9e85e4ec59a0ca1a1b55/ViT-B-16.pt |
 
 The script automatically downloads the model via the `open_clip` library. For offline environments, download manually and place in the cache directory.
+
+---
+
+## System requirements
+
+### Software
+
+| Package | Version |
+|---------|---------|
+| Python | 3.8+ |
+| PyTorch | 1.10+ |
+| open_clip_torch | latest |
+| torchvision | compatible with PyTorch |
+| numpy | 1.20+ |
+| scikit-learn | 0.24+ |
+| Pillow | 8.0+ |
+| tqdm | 4.60+ |
+
+### Hardware
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| GPU | NVIDIA with 8GB VRAM | Tesla T4/P100 with 16GB VRAM |
+| RAM | 16GB | 32GB |
+| Storage | 10GB free | 20GB free |
+
+---
+
+## Installation
+
+```bash
+# clone the repository
+git clone https://github.com/dvydinh/ralm_industrial_anomaly_detection.git
+cd ralm_industrial_anomaly_detection
+
+# create a virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # linux/mac
+venv\Scripts\activate     # windows
+
+# install dependencies
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+pip install open_clip_torch scikit-learn pillow tqdm
+```
