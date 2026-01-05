@@ -273,3 +273,58 @@ venv\Scripts\activate     # windows
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 pip install open_clip_torch scikit-learn pillow tqdm
 ```
+
+---
+
+## Usage
+
+### Training the RAML model (phase 1)
+
+```bash
+python train_raml_model.py
+```
+
+This script will:
+- Download and prepare the MVTec dataset
+- Train the RAML model for 25 epochs
+- Save checkpoints to `checkpoints/`
+- Report AUROC scores for each category
+
+**Key hyperparameters (adjustable in script):**
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| epochs | 25 | number of training epochs |
+| batch_size | 16 | number of samples per batch |
+| learning_rate | 5e-5 | learning rate for AdamW |
+| weight_decay | 0.02 | L2 regularization |
+| margin_base | 0.5 | base margin value |
+| lambda_sigma | 0.3 | sigma coefficient |
+| lambda_resolution | 0.3 | resolution coefficient |
+| temperature | 0.07 | temperature for contrastive loss |
+
+### Running ablation baselines (phase 2)
+
+```bash
+# fixed margin baseline (m=0.5, no adaptive)
+python baselines/train_baseline_fixed_margin_05.py
+
+# strong margin baseline (m=1.0, no adaptive)
+python baselines/train_baseline_strong_margin_10.py
+```
+
+### VisA transfer evaluation (phase 3)
+
+```bash
+python KAGGLE_PHASE_3_VISA.py
+```
+
+Evaluates the model trained on MVTec against the VisA dataset without fine-tuning.
+
+### WinCLIP zero-shot baseline
+
+```bash
+python evaluate_winclip_baseline.py
+```
+
+Runs WinCLIP zero-shot evaluation for comparison.
