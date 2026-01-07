@@ -328,3 +328,37 @@ python evaluate_winclip_baseline.py
 ```
 
 Runs WinCLIP zero-shot evaluation for comparison.
+
+---
+
+## Experimental results
+
+### Ablation study: margin strategy
+
+| Configuration | Margin type | AUROC (%) |
+|---------------|-------------|-----------|
+| WinCLIP zero-shot | - | 86.98 |
+| Fixed Margin (m=0.5) | fixed | 87.99 |
+| Strong Margin (m=1.0) | fixed | 86.24 |
+| **RAML (adaptive)** | **adaptive** | **94.09** |
+
+### Per-category results (MVTec AD)
+
+| Category | RAML (%) | WinCLIP (%) | Improvement |
+|----------|----------|-------------|-------------|
+| bottle | 100.00 | 94.48 | +5.52 |
+| cable | 85.09 | 85.13 | -0.04 |
+| capsule | 94.55 | 68.18 | +26.37 |
+| carpet | 100.00 | 99.55 | +0.45 |
+| grid | 100.00 | 98.39 | +1.61 |
+| hazelnut | 91.07 | 95.89 | -4.82 |
+| leather | 100.00 | 100.00 | 0.00 |
+| metal_nut | 97.89 | 57.79 | +40.10 |
+| pill | 89.66 | 73.52 | +16.14 |
+| screw | 86.57 | 64.90 | +21.67 |
+| tile | 100.00 | 99.78 | +0.22 |
+| toothbrush | 83.33 | 91.11 | -7.78 |
+| transistor | 84.38 | 86.14 | -1.76 |
+| wood | 100.00 | 98.15 | +1.85 |
+| zipper | 98.81 | 91.67 | +7.14 |
+| **Average** | **94.09** | **86.98** | **+7.11** |
