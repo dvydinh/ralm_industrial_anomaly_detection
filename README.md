@@ -362,3 +362,21 @@ Runs WinCLIP zero-shot evaluation for comparison.
 | wood | 100.00 | 98.15 | +1.85 |
 | zipper | 98.81 | 91.67 | +7.14 |
 | **Average** | **94.09** | **86.98** | **+7.11** |
+
+### VisA transfer results
+
+| Category | AUROC (%) |
+|----------|-----------|
+| candle | 85.14 |
+| capsules | 58.76 |
+| cashew | 56.84 |
+| chewinggum | 95.73 |
+| fryum | 81.57 |
+| macaroni1 | 66.35 |
+| macaroni2 | 65.76 |
+| pcb1 | 67.19 |
+| pcb2 | 59.08 |
+| pcb3 | 66.03 |
+| pcb4 | 87.72 |
+| pipe_fryum | 79.05 |
+| **Average** | **72.44** |
