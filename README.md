@@ -422,3 +422,13 @@ ralm_industrial_anomaly_detection/
 5. **Center Loss** - Y. Wen, K. Zhang, Z. Li, Y. Qiao. "A Discriminative Feature Learning Approach for Deep Face Recognition." ECCV 2016.
 
 6. **Attention** - A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, I. Polosukhin. "Attention Is All You Need." NeurIPS 2017.
+
+---
+
+## License
+
+The source code is released under the MIT License.
+
+The datasets follow their respective licenses:
+- MVTec AD: CC BY-NC-SA 4.0 (non-commercial use only)
+- VisA: CC BY 4.0
