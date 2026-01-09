@@ -380,3 +380,45 @@ Runs WinCLIP zero-shot evaluation for comparison.
 | pcb4 | 87.72 |
 | pipe_fryum | 79.05 |
 | **Average** | **72.44** |
+
+---
+
+## Project structure
+
+```
+ralm_industrial_anomaly_detection/
+├── train_raml_model.py              # main training script
+├── evaluate_winclip_baseline.py     # winclip zero-shot evaluation
+├── KAGGLE_PHASE_3_VISA.py           # visa transfer evaluation
+├── baselines/
+│   ├── train_baseline_fixed_margin_05.py   # ablation: fixed m=0.5
+│   ├── train_baseline_strong_margin_10.py  # ablation: fixed m=1.0
+│   └── train_baselines.py                  # combined baseline script
+├── checkpoints/
+│   ├── model_RAML_Proposed.pt       # main RAML model (adaptive margin)
+│   ├── model_Fixed_Margin_05.pt     # baseline: fixed m=0.5
+│   └── model_Strong_Margin_10.pt    # baseline: fixed m=1.0
+├── results/
+│   ├── result_RAML_Proposed.json    # raml results
+│   ├── result_Fixed_Margin_05.json  # fixed margin results
+│   ├── result_Strong_Margin_10.json # strong margin results
+│   ├── result_WinCLIP_ZeroShot.json # winclip baseline
+│   └── result_VisA_Transfer.json    # visa transfer results
+└── README.md
+```
+
+---
+
+## References
+
+1. **WinCLIP** - J. Jeong, Y. Zou, T. Kim, D. Zhang, A. Ravichandran, O. Dabeer. "WinCLIP: Zero-/Few-Shot Anomaly Classification and Segmentation." CVPR 2023.
+
+2. **CLIP** - A. Radford, J. W. Kim, C. Hallacy, A. Ramesh, G. Goh, S. Agarwal, G. Sastry, A. Askell, P. Mishkin, J. Clark, G. Krueger, I. Sutskever. "Learning Transferable Visual Models From Natural Language Supervision." ICML 2021.
+
+3. **MVTec AD** - P. Bergmann, M. Fauser, D. Sattlegger, C. Steger. "MVTec AD - A Comprehensive Real-World Dataset for Unsupervised Anomaly Detection." CVPR 2019.
+
+4. **VisA** - Y. Zou, J. Jeong, L. Pemula, D. Zhang, O. Dabeer. "SPot-the-Difference Self-supervised Pre-training for Anomaly Detection and Segmentation." ECCV 2022.
+
+5. **Center Loss** - Y. Wen, K. Zhang, Z. Li, Y. Qiao. "A Discriminative Feature Learning Approach for Deep Face Recognition." ECCV 2016.
+
+6. **Attention** - A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez, L. Kaiser, I. Polosukhin. "Attention Is All You Need." NeurIPS 2017.
