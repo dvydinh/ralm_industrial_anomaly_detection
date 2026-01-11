@@ -6,25 +6,25 @@ Vision-language models such as CLIP have demonstrated strong zero-shot anomaly d
 
 ## 1. Introduction
 
-Industrial anomaly detection requires identifying defective products from images of manufactured goods. Traditional approaches rely on one-class classification [6] or reconstruction-based methods trained exclusively on normal samples. Recent advances in vision-language models, particularly CLIP [1], have enabled zero-shot anomaly detection through text-visual similarity scoring, as demonstrated by WinCLIP [11].
+Industrial anomaly detection requires identifying defective products from images of manufactured goods. Traditional approaches rely on one-class classification [5] or reconstruction-based methods trained exclusively on normal samples. Recent advances in vision-language models, particularly CLIP [1], have enabled zero-shot anomaly detection through text-visual similarity scoring, as demonstrated by WinCLIP [10].
 
 Despite their generality, zero-shot methods suffer from two limitations in the industrial setting. First, the frozen CLIP feature space does not capture the fine-grained distinctions between subtle manufacturing defects and normal surface variations. Second, single-scale feature extraction discards spatial information that is critical for detecting localized anomalies such as scratches, dents, or contamination.
 
-Several recent works have attempted to address these limitations through prompt learning [12, 13, 14, 15, 16, 22, 25, 27, 29, 30] or adapter-based strategies [17, 18, 26, 28, 31]. However, most of these methods still operate on single-scale features and do not explicitly model the relationship between image resolution and anomaly discriminability.
+Several recent works have attempted to address these limitations through prompt learning [11, 12, 13, 14, 15, 21, 24, 26, 28, 29] or adapter-based strategies [16, 17, 25, 27, 30]. However, most of these methods still operate on single-scale features and do not explicitly model the relationship between image resolution and anomaly discriminability.
 
 This work addresses both limitations by proposing a multi-scale feature extraction and fusion pipeline that operates on frozen CLIP features, combined with a composite loss function designed to simultaneously tighten the normal feature cluster and push anomaly features beyond an adaptive margin boundary.
 
 ## 2. Related work
 
-**Vision-language models for anomaly detection.** CLIP [1] provides a general-purpose visual encoder whose features transfer well to downstream tasks without fine-tuning. WinCLIP [11] first demonstrated competitive zero-shot anomaly detection by computing text-visual similarities with handcrafted prompts. Subsequent works introduced learnable prompts to improve alignment: AnomalyCLIP [12] proposed object-agnostic prompt learning, PromptAD [13, 14] explored few-shot and zero-shot prompt strategies, and AdaCLIP [15] combined learnable visual and text prompts. VCP-CLIP [16] introduced visual context prompting for anomaly segmentation, while InCTRL [17] used in-context residual learning with few-shot sample prompts. More recent methods include AA-CLIP [18] which incorporates anomaly-aware learning, Bayesian prompt flow learning [19] for probabilistic prompt modeling, and DLVP-CLIP [25] which uses dynamic local visual prompts. MoECLIP [26] employs mixture-of-experts for patch specialization, and several concurrent works [27, 28, 29, 30, 31] further explore multi-modal prompt fusion and frequency-domain features.
+**Vision-language models for anomaly detection.** CLIP [1] provides a general-purpose visual encoder whose features transfer well to downstream tasks without fine-tuning. WinCLIP [10] first demonstrated competitive zero-shot anomaly detection by computing text-visual similarities with handcrafted prompts. Subsequent works introduced learnable prompts to improve alignment: AnomalyCLIP [11] proposed object-agnostic prompt learning, PromptAD [12, 13] explored few-shot and zero-shot prompt strategies, and AdaCLIP [14] combined learnable visual and text prompts. VCP-CLIP [15] introduced visual context prompting for anomaly segmentation, while InCTRL [16] used in-context residual learning with few-shot sample prompts. More recent methods include AA-CLIP [17] which incorporates anomaly-aware learning, Bayesian prompt flow learning [18] for probabilistic prompt modeling.
 
-**Anomaly detection benchmarks.** MVTec AD [2] remains the standard benchmark for industrial anomaly detection, providing 15 categories with pixel-level annotations. VisA [3] extends this to more complex industrial scenarios. The recently introduced MVTec AD 2 [4] adds advanced scenarios including logical anomalies.
+**Anomaly detection benchmarks.** MVTec AD [2] remains the standard benchmark for industrial anomaly detection, providing 15 categories with pixel-level annotations. VisA [3] extends this to more complex industrial scenarios.
 
-**Synthetic anomaly generation.** CutPaste [5] introduced self-supervised anomaly generation by cutting and pasting image patches, enabling training without real defective samples. PatchCore [7] demonstrated the effectiveness of memory bank approaches using patch-level features. Our method builds on the CutPaste paradigm to generate synthetic training anomalies.
+**Synthetic anomaly generation.** CutPaste [4] introduced self-supervised anomaly generation by cutting and pasting image patches, enabling training without real defective samples. PatchCore [6] demonstrated the effectiveness of memory bank approaches using patch-level features. Our method builds on the CutPaste paradigm to generate synthetic training anomalies.
 
-**Metric learning for anomaly detection.** Center loss [9] learns compact feature representations by minimizing intra-class variation. Adaptive margin losses [10] improve few-shot classification by conditioning the margin on feature statistics. Supervised contrastive learning [8] extends contrastive objectives to leverage label information. Deep SAD [6] combines deep learning with semi-supervised anomaly detection objectives. Our composite loss function draws on all three paradigms.
+**Metric learning for anomaly detection.** Center loss [8] learns compact feature representations by minimizing intra-class variation. Adaptive margin losses [9] improve few-shot classification by conditioning the margin on feature statistics. Supervised contrastive learning [7] extends contrastive objectives to leverage label information. Deep SAD [5] combines deep learning with semi-supervised anomaly detection objectives. Our composite loss function draws on all three paradigms.
 
-**Multi-scale and resolution-aware approaches.** AnomalyDINO [20] demonstrated the value of multi-scale patch features using DINOv2 for few-shot detection. Self-supervised CLIP-guided methods [27] combine pseudo anomalies with multi-scale CLIP features. HLGFA [32] explores high-low resolution feature alignment. Our approach differs by introducing an explicit resolution-conditioned margin that adapts to information loss from image rescaling.
+**Multi-scale and resolution-aware approaches.** AnomalyDINO [19] demonstrated the value of multi-scale patch features using DINOv2 for few-shot detection. Our approach differs by introducing an explicit resolution-conditioned margin that adapts to information loss from image rescaling.
 
 ## 3. Method
 
@@ -58,11 +58,11 @@ The total training objective combines three losses:
 
 **L_total = alpha * L_center + beta * L_margin + gamma * L_contrastive**
 
-- **Center loss** [9] **(L_center):** Minimizes the distance between normal-sample features and a learnable center, encouraging a compact normal cluster.
-- **Input-size-conditioned margin loss** [10] **(L_margin):** A hinge loss that pushes anomaly features beyond an adaptive margin from the normal center. The margin is defined as m = m_base + lambda_sigma * sigma + lambda_r * (1 - r/r_max), where sigma is the running standard deviation of normal features and r is the retained resolution ratio.
-- **Supervised contrastive loss** [8] **(L_contrastive):** Attracts features of the same class and repels features of different classes in the embedding space.
+- **Center loss** [8] **(L_center):** Minimizes the distance between normal-sample features and a learnable center, encouraging a compact normal cluster.
+- **Input-size-conditioned margin loss** [9] **(L_margin):** A hinge loss that pushes anomaly features beyond an adaptive margin from the normal center. The margin is defined as m = m_base + lambda_sigma * sigma + lambda_r * (1 - r/r_max), where sigma is the running standard deviation of normal features and r is the retained resolution ratio.
+- **Supervised contrastive loss** [7] **(L_contrastive):** Attracts features of the same class and repels features of different classes in the embedding space.
 
-Training anomalies are generated synthetically using CutPaste-style augmentation [5].
+Training anomalies are generated synthetically using CutPaste-style augmentation [4].
 
 ### 3.5 Inference scoring
 
@@ -206,62 +206,43 @@ This work demonstrates that a lightweight, resolution-aware detection head train
 
 [3] Y. Zou, J. Jeong, L. Pemula, D. Zhang, and O. Dabeer. SPot-the-Difference self-supervised pre-training for anomaly detection and segmentation. In *ECCV*, 2022.
 
-[4] T. Heckler-Kram et al. The MVTec AD 2 dataset: Advanced scenarios for unsupervised anomaly detection. *IJCV*, 2026.
+[4] C.-L. Li, K. Sohn, J. Yoon, and T. Pfister. CutPaste: Self-supervised learning for anomaly detection and localization. In *CVPR*, 2021.
 
-[5] C.-L. Li, K. Sohn, J. Yoon, and T. Pfister. CutPaste: Self-supervised learning for anomaly detection and localization. In *CVPR*, 2021.
+[5] L. Ruff, R. A. Vandermeulen, N. Görnitz, A. Binder, E. Müller, K.-R. Müller, and M. Kloft. Deep semi-supervised anomaly detection. In *ICLR*, 2020.
 
-[6] L. Ruff, R. A. Vandermeulen, N. Görnitz, A. Binder, E. Müller, K.-R. Müller, and M. Kloft. Deep semi-supervised anomaly detection. In *ICLR*, 2020.
+[6] K. Roth, L. Pemula, J. Zepeda, B. Schölkopf, T. Brox, and P. Gehler. Towards total recall in industrial anomaly detection. In *CVPR*, 2022.
 
-[7] K. Roth, L. Pemula, J. Zepeda, B. Schölkopf, T. Brox, and P. Gehler. Towards total recall in industrial anomaly detection. In *CVPR*, 2022.
+[7] P. Khosla, P. Teterwak, C. Wang, A. Sarna, Y. Tian, P. Isola, A. Maschinot, C. Liu, and D. Krishnan. Supervised contrastive learning. In *NeurIPS*, 2020.
 
-[8] P. Khosla, P. Teterwak, C. Wang, A. Sarna, Y. Tian, P. Isola, A. Maschinot, C. Liu, and D. Krishnan. Supervised contrastive learning. In *NeurIPS*, 2020.
+[8] Y. Wen, K. Zhang, Z. Li, and Y. Qiao. A discriminative feature learning approach for deep face recognition. In *ECCV*, 2016.
 
-[9] Y. Wen, K. Zhang, Z. Li, and Y. Qiao. A discriminative feature learning approach for deep face recognition. In *ECCV*, 2016.
+[9] R. Li, T. Han, R. Qian, C. Li, and J. Yang. Boosting few-shot learning with adaptive margin loss. In *CVPR*, 2020.
 
-[10] R. Li, T. Han, R. Qian, C. Li, and J. Yang. Boosting few-shot learning with adaptive margin loss. In *CVPR*, 2020.
+[10] J. Jeong, Y. Zou, T. Kim, D. Zhang, A. Ravichandran, and O. Dabeer. WinCLIP: Zero-/few-shot anomaly classification and segmentation. In *CVPR*, 2023.
 
-[11] J. Jeong, Y. Zou, T. Kim, D. Zhang, A. Ravichandran, and O. Dabeer. WinCLIP: Zero-/few-shot anomaly classification and segmentation. In *CVPR*, 2023.
+[11] Q. Zhou, G. Pang, Y. Tian, S. He, and J. Chen. AnomalyCLIP: Object-agnostic prompt learning for zero-shot anomaly detection. In *ICLR*, 2024.
 
-[12] Q. Zhou, G. Pang, Y. Tian, S. He, and J. Chen. AnomalyCLIP: Object-agnostic prompt learning for zero-shot anomaly detection. In *ICLR*, 2024.
+[12] Y. Li et al. PromptAD: Learning prompts with only normal samples for few-shot anomaly detection. In *CVPR*, 2024.
 
-[13] Y. Li et al. PromptAD: Learning prompts with only normal samples for few-shot anomaly detection. In *CVPR*, 2024.
+[13] Y. Li et al. PromptAD: Zero-shot anomaly detection using text prompts. In *WACV*, 2024.
 
-[14] Y. Li et al. PromptAD: Zero-shot anomaly detection using text prompts. In *WACV*, 2024.
+[14] Y. Cao et al. AdaCLIP: Adapting CLIP with hybrid learnable prompts for zero-shot anomaly detection. In *ECCV*, 2024.
 
-[15] Y. Cao et al. AdaCLIP: Adapting CLIP with hybrid learnable prompts for zero-shot anomaly detection. In *ECCV*, 2024.
+[15] Z. Qu et al. VCP-CLIP: A visual context prompting model for zero-shot anomaly segmentation. In *ECCV*, 2024.
 
-[16] Z. Qu et al. VCP-CLIP: A visual context prompting model for zero-shot anomaly segmentation. In *ECCV*, 2024.
+[16] J. Zhu and G. Pang. Toward generalist anomaly detection via in-context residual learning with few-shot sample prompts. In *CVPR*, 2024.
 
-[17] J. Zhu and G. Pang. Toward generalist anomaly detection via in-context residual learning with few-shot sample prompts. In *CVPR*, 2024.
+[17] X. Ma et al. AA-CLIP: Enhancing zero-shot anomaly detection via anomaly-aware CLIP. In *CVPR*, 2025.
 
-[18] X. Ma et al. AA-CLIP: Enhancing zero-shot anomaly detection via anomaly-aware CLIP. In *CVPR*, 2025.
+[18] Z. Qu et al. Bayesian prompt flow learning for zero-shot anomaly detection. In *CVPR*, 2025.
 
-[19] Z. Qu et al. Bayesian prompt flow learning for zero-shot anomaly detection. In *CVPR*, 2025.
+[19] T. Damm et al. AnomalyDINO: Boosting patch-based few-shot anomaly detection with DINOv2. In *WACV*, 2025.
 
-[20] T. Damm et al. AnomalyDINO: Boosting patch-based few-shot anomaly detection with DINOv2. In *WACV*, 2025.
+[20] X. Ma et al. ReMP-AD: Retrieval-enhanced multi-modal prompt fusion for few-shot industrial visual anomaly detection. In *ICCV*, 2025.
 
-[21] X. Ma et al. ReMP-AD: Retrieval-enhanced multi-modal prompt fusion for few-shot industrial visual anomaly detection. In *ICCV*, 2025.
+[21] S. He et al. RareCLIP: Rarity-aware online zero-shot industrial anomaly detection. In *ICCV*, 2025.
 
-[22] S. He et al. RareCLIP: Rarity-aware online zero-shot industrial anomaly detection. In *ICCV*, 2025.
+[22] Y. Gong et al. FE-CLIP: Frequency enhanced CLIP model for zero-shot anomaly detection and segmentation. In *ICCV*, 2025.
 
-[23] Y. Gong et al. FE-CLIP: Frequency enhanced CLIP model for zero-shot anomaly detection and segmentation. In *ICCV*, 2025.
+[23] J. Zhu et al. Fine-grained abnormality prompt learning for zero-shot anomaly detection. In *ICCV*, 2025.
 
-[24] J. Zhu et al. Fine-grained abnormality prompt learning for zero-shot anomaly detection. In *ICCV*, 2025.
-
-[25] Y. Zhang and Y. Zhang. DLVP-CLIP: Enhancing fine-grained zero-shot anomaly detection via dynamic local visual prompting. In *CVPR*, 2026.
-
-[26] J. Park et al. MoECLIP: Patch-specialized experts for zero-shot anomaly detection. In *CVPR*, 2026.
-
-[27] X. Chen et al. Self-supervised CLIP-guided for few-shot industrial anomaly detection. *IEEE TIM*, 2026.
-
-[28] J. Li et al. Anomaly-aware prompt learning and multi-scale feature adaptation for zero-shot anomaly detection. 2026.
-
-[29] D. Ha et al. CLIP-MDC: CLIP encoder based multimodal defect classification with synthetic anomaly generation. *Journal of Intelligent Manufacturing*, 2026.
-
-[30] X. Ma et al. PAPL: Particle-based adaptive prompt learning for zero-shot industrial anomaly detection. *Pattern Recognition*, 2026.
-
-[31] Y. Yan et al. HCLIP-AD: Calibrating text-image foundation models with hierarchical semantic alignment for zero-shot anomaly detection. *Pattern Recognition*, 2026.
-
-[32] J. Xu et al. MRAD: Zero-shot anomaly detection with memory-driven retrieval. In *ICLR*, 2026.
-
-[33] S. Lee et al. Bidirectional multimodal prompt learning with scale-aware training for few-shot multi-class anomaly detection. In *CVPR*, 2026.
