@@ -47,36 +47,7 @@ RAML addresses these limitations through:
 
 ### System overview
 
-```
-Input image (H x W)
-       |
-       v
-+------------------+
-| Multi-Scale      |  Scale 1: 1x1 (global)    -> 1 x 512-dim
-| Feature Pyramid  |  Scale 2: 2x2 patches     -> 4 x 512-dim  
-|                  |  Scale 3: 4x4 patches     -> 16 x 512-dim
-+------------------+
-       |
-       v (21 CLIP forward passes total)
-+------------------+
-| Cross-Scale      |  Bidirectional attention across scales
-| Attention        |  Combining global <-> local context
-+------------------+
-       |
-       v
-+------------------+
-| Text-Visual      |  Text prompts: "flawless {category}" vs
-| Fusion           |  "damaged {category} with defects"
-+------------------+
-       |
-       v
-+------------------+
-| MACCL Loss       |  Center Loss + Margin Loss + Contrastive Loss
-+------------------+
-       |
-       v
-   Anomaly Score
-```
+<img width="417" height="788" alt="overview drawio" src="https://github.com/user-attachments/assets/c2ed338e-ea6f-4fb1-8917-145d61d4ee8f" />
 
 ### Multi-scale feature pyramid
 
